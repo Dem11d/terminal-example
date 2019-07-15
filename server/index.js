@@ -8,7 +8,11 @@ const app = express();
 app.use(index);
 const server = http.createServer(app);
 const io = socketIo(server); // < Interesting!
-const getApiAndEmit = "TODO";
+
+
+const getApiAndEmit = (socket) => {
+    socket.emit('data', (Math.random()*1000).toString());
+};
 
 
 let interval;
@@ -17,7 +21,7 @@ io.on("connection", socket => {
     if (interval) {
         clearInterval(interval);
     }
-    interval = setInterval(() => getApiAndEmit(socket), 10000);
+    interval = setInterval(() => getApiAndEmit(socket), 500);
     socket.on("disconnect", () => {
         console.log("Client disconnected");
     });
