@@ -7,11 +7,22 @@ const index = require("./routes/index");
 const app = express();
 app.use(index);
 const server = http.createServer(app);
-const io = socketIo(server); // < Interesting!
+const io = socketIo(server);
 
 
-const getApiAndEmit = (socket) => {
-    socket.emit('data', (Math.random()*1000).toString());
+function* createMockDataGenerator(){
+    let pipelineCnt = 0;
+    while(true){
+        const period = Math.floor(Math.random() * 10) + 1;
+        for(let i = 0; i<=period; i++){
+            yield {id: pipelineCnt, data:i}
+        }
+        pipelineCnt++;
+    }
+}
+
+const getApiAndEmit = (socket, generator) => {
+    socket.emit('data', generator.next().value);
 };
 
 
@@ -21,7 +32,8 @@ io.on("connection", socket => {
     if (interval) {
         clearInterval(interval);
     }
-    interval = setInterval(() => getApiAndEmit(socket), 500);
+    const generator = createMockDataGenerator();
+    interval = setInterval(() => getApiAndEmit(socket, generator ), 500);
     socket.on("disconnect", () => {
         console.log("Client disconnected");
     });
